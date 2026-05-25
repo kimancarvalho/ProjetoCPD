@@ -8,18 +8,16 @@ import statistics
 import multiprocessing
 from primos import find_max_prime_sequential, find_max_prime_parallel
 
-# =============================================================================
+
 # Configuração
-# =============================================================================
+
 
 RUNS        = 10
 TIMEOUT     = 5   # segundos por corrida
 WORKERS     = multiprocessing.cpu_count()
 OUTPUT_FILE = "benchmark_resultados.txt"
 
-# =============================================================================
 # Utilitários
-# =============================================================================
 
 def run_benchmark(label: str, fn, runs: int) -> list[int]:
     """Corre `fn` `runs` vezes, imprime progresso e devolve lista de resultados."""
@@ -57,9 +55,9 @@ def format_block(label: str, results: list[int], s: dict) -> str:
     return "\n".join(lines)
 
 
-# =============================================================================
+
 # Main
-# =============================================================================
+
 
 if __name__ == "__main__":
 
@@ -73,7 +71,7 @@ if __name__ == "__main__":
 
     print(header)
 
-    # ── Sequencial ────────────────────────────────────────────────────────────
+    # Sequencial
     print("A correr versão SEQUENCIAL...")
     seq_results = run_benchmark(
         "SEQ", lambda: find_max_prime_sequential(TIMEOUT), RUNS
@@ -81,13 +79,13 @@ if __name__ == "__main__":
 
     print()
 
-    # ── Paralela ──────────────────────────────────────────────────────────────
+    # Paralela
     print(f"A correr versão PARALELA ({WORKERS} workers)...")
     par_results = run_benchmark(
         "PAR", lambda: find_max_prime_parallel(TIMEOUT, WORKERS), RUNS
     )
 
-    # ── Estatísticas ──────────────────────────────────────────────────────────
+    # Estatísticas
     seq_stats = stats(seq_results)
     par_stats = stats(par_results)
     speedup   = par_stats["média"] / seq_stats["média"]
@@ -100,7 +98,7 @@ if __name__ == "__main__":
         f"  (a versão paralela encontrou primos em média {speedup:.2f}x maiores)"
     )
 
-    # ── Escrever ficheiro ─────────────────────────────────────────────────────
+    # Escrever ficheiro
     output = "\n".join([
         header,
         format_block(f"SEQUENCIAL  (1 worker, timeout={TIMEOUT}s)", seq_results, seq_stats),

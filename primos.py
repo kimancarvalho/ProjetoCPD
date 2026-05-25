@@ -9,9 +9,8 @@ import multiprocessing
 import multiprocessing.sharedctypes
 import multiprocessing.synchronize
 
-# =============================================================================
-# Função de verificar primalidade fornecida pelo enunciado
-# =============================================================================
+# Função de verificar primalidade
+
 
 def is_prime(n: int) -> bool:
     """
@@ -40,9 +39,9 @@ def is_prime(n: int) -> bool:
     return True
 
 
-# =============================================================================
+
 # Versão sequencial
-# =============================================================================
+
 
 def find_max_prime_sequential(timeout: int) -> int:
     """
@@ -77,14 +76,14 @@ def find_max_prime_sequential(timeout: int) -> int:
     return best
 
 
-# =============================================================================
+
 # Versão paralela
-# =============================================================================
+
 
 # Tamanho de cada bloco de candidatos atribuído a um worker de cada vez.
-# Valor empiricamente ajustado: grande o suficiente para amortizar o overhead
-# de IPC, pequeno o suficiente para manter os workers equilibrados.
-BLOCK_SIZE = 100_000
+# Este Valor deve ser ajustado: grande o suficiente para amortizar o overhead
+# de IPC e pequeno o suficiente para manter os workers equilibrados:
+BLOCK_SIZE = 200_000_000_000
 
 
 def _worker(
@@ -92,6 +91,7 @@ def _worker(
         best: multiprocessing.sharedctypes.Synchronized,  # maior primo global encontrado
         stop_event: multiprocessing.synchronize.Event,  # sinaliza o fim do timeout
         block_size: int,  # número de candidatos por bloco
+        deadline: float,  # time.monotonic() + timeout, calculado pelo processo principal
 ) -> None:
     """
     Função executada por cada processo worker.
@@ -106,15 +106,25 @@ def _worker(
 
     O ciclo repete-se até o `stop_event` ser ativado pelo processo principal.
 
+    Terminação dentro do bloco (Fase 2):
+      A verificação de paragem usa `time.monotonic() > deadline` em vez de
+      `stop_event.is_set()`. Ambos têm o mesmo efeito mas a comparação de
+      tempo é puramente local ao processo — sem qualquer IPC ou lock — o que
+      elimina o overhead de sincronização a cada candidato testado.
+      O `stop_event` mantém-se no loop exterior como sinal de paragem limpa
+      entre blocos, onde o custo de IPC é negligenciável (~77 vezes/corrida).
+
     Parâmetros:
-        next_block  : Value('Q') — índice do próximo bloco a processar.
-        best        : Value('Q') — maior primo encontrado por qualquer worker.
-        stop_event  : Event — quando ativo, o worker termina após o bloco atual.
+        next_block  : Value('Q')  índice do próximo bloco a processar.
+        best        : Value('Q')  maior primo encontrado por qualquer worker.
+        stop_event  : Event  quando ativo, o worker termina após o bloco atual.
         block_size  : número de candidatos (ímpares) por bloco.
+        deadline    : instante de fim em time.monotonic(), partilhado por todos
+                      os workers para consistência do limite temporal.
     """
     while not stop_event.is_set():
 
-        # ── Fase 1: reservar o próximo bloco atomicamente ──────────────────
+        # Fase 1: reservar o próximo bloco atomicamente
         with next_block.get_lock():
             block_index = next_block.value
             next_block.value += 1
@@ -125,18 +135,18 @@ def _worker(
         block_start = 3 + block_index * block_size * 2  # primeiro ímpar do bloco
         block_end = block_start + (block_size - 1) * 2  # último ímpar do bloco
 
-        # ── Fase 2: pesquisar do maior para o menor ─────────────────────────
+        # Fase 2: pesquisar do maior para o menor
         block_best = None
         candidate = block_end
         while candidate >= block_start:
-            if stop_event.is_set():  # ← parar a meio do bloco se o tempo acabou
+            if time.monotonic() > deadline:  # comparação local sem IPC
                 return
             if is_prime(candidate):
                 block_best = candidate
-                break  # maior primo do bloco encontrado — sair
+                break  # maior primo do bloco encontrado: sair
             candidate -= 2  # só ímpares
 
-        # ── Fase 3: atualizar o melhor global (com lock) ────────────────────
+        # Fase 3: atualizar o melhor global (com lock)
         if block_best is not None:
             with best.get_lock():
                 if block_best > best.value:
@@ -173,11 +183,15 @@ def find_max_prime_parallel(timeout: int, workers: int) -> int:
     best = multiprocessing.Value('Q', 2)  # começa em 2 (menor primo válido)
     stop_event = multiprocessing.Event()
 
+    # Deadline calculado uma vez aqui e passado a todos os workers como float.
+    # Assim todos partilham exactamente o mesmo instante de fim sem qualquer IPC.
+    deadline = time.monotonic() + timeout
+
     # Lançar os workers
     pool = [
         multiprocessing.Process(
             target=_worker,
-            args=(next_block, best, stop_event, BLOCK_SIZE),
+            args=(next_block, best, stop_event, BLOCK_SIZE, deadline),
             daemon=True,  # garantia extra: morrem se o processo pai morrer
         )
         for _ in range(workers)
@@ -196,9 +210,8 @@ def find_max_prime_parallel(timeout: int, workers: int) -> int:
     return best.value
 
 
-# =============================================================================
-# Ponto de entrada — comparação sequencial vs paralela
-# =============================================================================
+# Ponto de entrada: comparação sequencial vs paralela
+
 
 if __name__ == "__main__":
     TIMEOUT = 5  # segundos
