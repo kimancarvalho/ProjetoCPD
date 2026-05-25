@@ -95,7 +95,7 @@ def _worker(
 ) -> None:
     """
     Função executada por cada processo worker.
-
+#
     Cada worker opera num ciclo de três fases:
       1. Reservar o próximo bloco via contador atómico (operação com lock).
       2. Pesquisar o bloco de forma autónoma, do maior para o menor candidato
