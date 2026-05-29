@@ -1,0 +1,74 @@
+BENCHMARK — gameoflife.py
+Data              : 2026-05-28 21:02:04
+Grelha            : 500×500
+Gerações          : 50
+Corridas por conf.: 5
+Células vivas     : 74929 (30.0%)
+CPUs disponíveis  : 8
+Workers testados  : [1, 2, 4, 8]
+
+============================================================
+  SEQUENCIAL
+============================================================
+  Corrida 1 : 15.540s
+  Corrida 2 : 19.198s
+  Corrida 3 : 18.117s
+  Corrida 4 : 21.983s
+  Corrida 5 : 21.685s
+  ----------------------------------------
+  min=15.540s  max=21.983s  média=19.305s  desvio=2.666s
+
+============================================================
+  PARALELA
+============================================================
+
+  Workers = 1  |  Consistente: SIM
+  Corrida 1 : 16.496s
+  Corrida 2 : 16.116s
+  Corrida 3 : 17.042s
+  Corrida 4 : 16.388s
+  Corrida 5 : 16.506s
+  ----------------------------------------
+  min=16.116s  max=17.042s  média=16.510s  desvio=0.337s
+  Speedup vs sequencial: 1.17x
+
+  Workers = 2  |  Consistente: SIM
+  Corrida 1 : 11.111s
+  Corrida 2 : 16.860s
+  Corrida 3 : 19.452s
+  Corrida 4 : 11.921s
+  Corrida 5 : 10.303s
+  ----------------------------------------
+  min=10.303s  max=19.452s  média=13.929s  desvio=4.007s
+  Speedup vs sequencial: 1.39x
+
+  Workers = 4  |  Consistente: SIM
+  Corrida 1 : 8.030s
+  Corrida 2 : 11.390s
+  Corrida 3 : 10.509s
+  Corrida 4 : 8.718s
+  Corrida 5 : 10.653s
+  ----------------------------------------
+  min=8.030s  max=11.390s  média=9.860s  desvio=1.418s
+  Speedup vs sequencial: 1.96x
+
+  Workers = 8  |  Consistente: SIM
+  Corrida 1 : 8.458s
+  Corrida 2 : 9.913s
+  Corrida 3 : 9.294s
+  Corrida 4 : 9.169s
+  Corrida 5 : 8.984s
+  ----------------------------------------
+  min=8.458s  max=9.913s  média=9.164s  desvio=0.527s
+  Speedup vs sequencial: 2.11x
+
+============================================================
+  RESUMO
+============================================================
+  Configuração          Média (s)    Speedup  Consistente
+  ------------------------------------------------------
+  Sequencial               19.305          —            —
+  Paralela (1w)            16.510       1.17x          SIM
+  Paralela (2w)            13.929       1.39x          SIM
+  Paralela (4w)             9.860       1.96x          SIM
+  Paralela (8w)             9.164       2.11x          SIM
