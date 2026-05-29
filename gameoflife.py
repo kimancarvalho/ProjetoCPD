@@ -5,11 +5,11 @@ Implementação das versões sequencial e paralela (multiprocessing),
 operando sobre grelhas representadas como listas de listas Python.
 
 Regras:
-  - Célula viva com < 2 vizinhos vivos  → morre  (solidão)
-  - Célula viva com 2 ou 3 vizinhos     → sobrevive
-  - Célula viva com > 3 vizinhos vivos  → morre  (superpopulação)
-  - Célula morta com exactamente 3 vizinhos vivos → nasce
-  - A grelha é acíclica — células nas bordas têm menos vizinhos
+  - Célula viva com < 2 vizinhos vivos   morre  (solidão)
+  - Célula viva com 2 ou 3 vizinhos      sobrevive
+  - Célula viva com > 3 vizinhos vivos   morre  (superpopulação)
+  - Célula morta com exactamente 3 vizinhos vivos  nasce
+  - A grelha é acíclica células nas bordas têm menos vizinhos
 """
 
 import multiprocessing
@@ -23,7 +23,7 @@ def count_neighbors(grid: list[list[int]], row: int, col: int,
     Conta o número de vizinhos vivos de uma célula.
 
     Considera os 8 vizinhos possíveis (horizontal, vertical e diagonal).
-    A grelha não é cíclica — vizinhos fora dos limites são ignorados.
+    A grelha não é cíclica  vizinhos fora dos limites são ignorados.
 
     Parâmetros:
         grid : grelha atual
@@ -151,10 +151,10 @@ def game_of_life_parallel(grid: list[list[int]], generations: int,
     """
     Simula o Game of Life em paralelo durante gerações.
 
-    Estratégia — divisão por linhas com Pool e starmap:
+    Estratégia  divisão por linhas com Pool e starmap:
       - A grelha é dividida em `workers` fatias horizontais de linhas.
       - Em cada geração, o Pool distribui as fatias pelos workers via starmap,
-        que bloqueia até todos terminarem — garantindo sincronização automática
+        que bloqueia até todos terminarem  garantindo sincronização automática
         entre gerações.
       - Cada worker recebe a grelha completa para leitura, eliminando o problema
         de fronteira: as células de borda acedem correctamente aos vizinhos de
@@ -185,13 +185,13 @@ def game_of_life_parallel(grid: list[list[int]], generations: int,
 
     with multiprocessing.Pool(processes=workers) as pool:
         for _ in range(generations):
-            # Construir lista de tarefas - cada tupla é desempacotada pelo starmap
+            # Construir lista de tarefas cada tupla é desempacotada pelo starmap
             tasks = [
                 (grid, row_start, row_end, rows, cols)
                 for row_start, row_end in slices
             ]
 
-            # Executar em paralelo - bloqueia até todos os workers terminarem
+            # Executar em paralelo  bloqueia até todos os workers terminarem
             # garantindo sincronização automática entre gerações
             fatias = pool.starmap(_compute_slice, tasks)
 

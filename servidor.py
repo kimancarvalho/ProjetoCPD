@@ -26,6 +26,8 @@ import inspect
 import threading
 import multiprocessing
 import sys
+import random
+import time
 
 from primos import is_prime, find_max_prime_parallel
 from gameoflife import game_of_life_parallel
@@ -41,19 +43,33 @@ from gameoflife import game_of_life_parallel
 
 def find_max_prime(timeout: int, workers: int = multiprocessing.cpu_count()) -> int:
     """Procura o maior numero primo possivel durante timeout segundos."""
+    if not isinstance(timeout, int):
+        raise TypeError("O timeout deve ser um numero inteiro.")
+    if timeout <= 0:
+        raise ValueError("O timeout deve ser um inteiro positivo.")
+    if not isinstance(workers, int) or workers <= 0:
+        raise ValueError("O numero de workers deve ser um inteiro positivo.")
     return find_max_prime_parallel(timeout, workers)
 
 
 def verificar_primo(n: int) -> bool:
     """Verifica se o numero n e primo. Devolve True se for primo, False caso contrario."""
+    if not isinstance(n, int):
+        raise TypeError("O parametro n deve ser um numero inteiro.")
     return is_prime(n)
 
 
 def game_of_life(tamanho: int, generations: int,
                  workers: int = multiprocessing.cpu_count()) -> dict:
     """Simula o Game of Life numa grelha quadrada tamanho x tamanho e devolve celulas vivas e tempo."""
-    import random
-    import time
+
+
+    if not isinstance(tamanho, int) or tamanho <= 0:
+        raise ValueError("O tamanho da grelha deve ser um inteiro positivo.")
+    if not isinstance(generations, int) or generations < 0:
+        raise ValueError("O numero de geracoes deve ser um inteiro nao negativo.")
+    if not isinstance(workers, int) or workers <= 0:
+        raise ValueError("O numero de workers deve ser um inteiro positivo.")
 
     random.seed()
     grid = [
