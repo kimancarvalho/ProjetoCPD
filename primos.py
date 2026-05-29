@@ -99,7 +99,7 @@ def _worker(
     Cada worker opera num ciclo de três fases:
       1. Reservar o próximo bloco via contador atómico (operação com lock).
       2. Pesquisar o bloco de forma autónoma, do maior para o menor candidato
-         (só ímpares), parando no primeiro primo encontrado — que é
+         (só ímpares), parando no primeiro primo encontrado  que é
          garantidamente o maior do bloco.
       3. Atualizar o melhor resultado global se o primo encontrado for maior
          (operação com lock).
@@ -109,7 +109,7 @@ def _worker(
     Terminação dentro do bloco (Fase 2):
       A verificação de paragem usa `time.monotonic() > deadline` em vez de
       `stop_event.is_set()`. Ambos têm o mesmo efeito mas a comparação de
-      tempo é puramente local ao processo — sem qualquer IPC ou lock — o que
+      tempo é puramente local ao processo  sem qualquer IPC ou lock  o que
       elimina o overhead de sincronização a cada candidato testado.
       O `stop_event` mantém-se no loop exterior como sinal de paragem limpa
       entre blocos, onde o custo de IPC é negligenciável (~77 vezes/corrida).
